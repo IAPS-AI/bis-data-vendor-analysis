@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIS Supply Chain Intelligence Vendor Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0d3b66 0%, #1e5f8a 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        header .summary-stat {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-right: 15px;
+            margin-top: 10px;
+        }
+
+        header .summary-stat .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        header .summary-stat .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Overview Chart Section */
+        .overview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .chart-card h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* Vendor Cards */
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .vendor-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .vendor-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .vendor-info h2 {
+            font-size: 1.3rem;
+            color: #0d3b66;
+            margin-bottom: 4px;
+        }
+
+        .vendor-info .reseller-note {
+            font-size: 0.85rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        .vendor-total {
+            text-align: right;
+        }
+
+        .vendor-total .amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0d3b66;
+        }
+
+        .vendor-total .label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .vendor-body {
+            padding: 24px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            background: #0d3b66;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #0d3b66;
+        }
+
+        .timeline-item.highlight::before {
+            background: #f4a261;
+            box-shadow: 0 0 0 2px #f4a261;
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .timeline-amount {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0d3b66;
+            margin-bottom: 6px;
+        }
+
+        .timeline-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .timeline-link {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #2196F3;
+            text-decoration: none;
+            padding: 4px 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+
+        .timeline-link:hover {
+            background: #bbdefb;
+            text-decoration: none;
+        }
+
+        .timeline-link svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+        }
+
+        /* Key Insight Box */
+        .insight-box {
+            background: #f8f9fa;
+            border-left: 4px solid #f4a261;
+            padding: 16px 20px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .insight-box h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .insight-box p {
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        /* Period Bar */
+        .period-bar {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .period-bar .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .period-visual {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .period-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0d3b66, #2196F3);
+            border-radius: 4px;
+        }
+
+        .period-dates {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        /* Comparison Table */
+        .comparison-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .comparison-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-header h3 {
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #fafafa;
+        }
+
+        .comparison-table .vendor-name {
+            font-weight: 600;
+            color: #0d3b66;
+        }
+
+        .comparison-table .amount {
+            font-weight: 600;
+        }
+
+        .comparison-table .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.completed {
+            background: #e0e0e0;
+            color: #616161;
+        }
+
+        .status.pilot {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #2196F3;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .vendor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .overview-section {
+                grid-template-columns: 1fr;
+            }
+
+            header .summary-stat {
+                display: block;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>BIS Supply Chain Intelligence Vendor Analysis</h1>
+            <p class="subtitle">Bureau of Industry and Security - Key Intelligence Platform Vendors</p>
+            <div>
+                <span class="summary-stat">
+                    <div class="label">Total Across 4 Vendors</div>
+                    <div class="value">$6.5M+</div>
+                </span>
+                <span class="summary-stat">
+                    <div class="label">Active Period</div>
+                    <div class="value">2021 - 2026</div>
+                </span>
+                <span class="summary-stat">
+                    <div class="label">Key Vendors</div>
+                    <div class="value">4</div>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Overview Charts -->
+        <div class="overview-section">
+            <div class="chart-card">
+                <h3>Total Contract Value by Vendor</h3>
+                <div class="chart-container">
+                    <canvas id="vendorTotalChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Contract Timeline</h3>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-section">
+            <div class="comparison-header">
+                <h3>Vendor Comparison Summary</h3>
+            </div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Total Value</th>
+                        <th>Contracts</th>
+                        <th>First Award</th>
+                        <th>Latest Activity</th>
+                        <th>Status</th>
+                        <th>Reseller</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="vendor-name">Palantir Technologies</td>
+                        <td class="amount">$4,600,200</td>
+                        <td>1 (8 mods)</td>
+                        <td>Oct 2024</td>
+                        <td>Jan 2026</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>Thundercat</td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Sayari Analytics</td>
+                        <td class="amount">$1,747,800</td>
+                        <td>4</td>
+                        <td>Feb 2021</td>
+                        <td>Dec 2025</td>
+                        <td><span class="status active">Active</span></td>
+                        <td>Direct</td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Conflict Armament Research</td>
+                        <td class="amount">$120,000</td>
+                        <td>1</td>
+                        <td>Feb 2021</td>
+                        <td>Feb 2022</td>
+                        <td><span class="status completed">Completed</span></td>
+                        <td>Direct</td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">WireScreen</td>
+                        <td class="amount">$25,000</td>
+                        <td>1</td>
+                        <td>Sep 2024</td>
+                        <td>Oct 2024</td>
+                        <td><span class="status pilot">Pilot</span></td>
+                        <td>Thundercat</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vendor Detail Cards -->
+        <div class="vendor-grid">
+            <!-- Sayari Analytics -->
+            <div class="vendor-card" id="sayari">
+                <div class="vendor-header">
+                    <div class="vendor-info">
+                        <h2>Sayari Analytics</h2>
+                        <div class="reseller-note">Direct contract with BIS</div>
+                    </div>
+                    <div class="vendor-total">
+                        <div class="amount">$1,747,800</div>
+                        <div class="label">Total Obligated</div>
+                    </div>
+                </div>
+                <div class="vendor-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">February 2021</div>
+                            <div class="timeline-title">Initial Database License</div>
+                            <div class="timeline-amount">$80,000</div>
+                            <div class="timeline-desc">Database License Support - First engagement testing Sayari platform utility</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L521P13160034_1301_-NONE-_-NONE-/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">March 2022</div>
+                            <div class="timeline-title">License Renewal</div>
+                            <div class="timeline-amount">$82,800</div>
+                            <div class="timeline-desc">Licenses - Continued access after initial pilot proved valuable</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L522P13160038_1301_-NONE-_-NONE-/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">March 2023</div>
+                            <div class="timeline-title">Sayari Data Access</div>
+                            <div class="timeline-amount">$85,000</div>
+                            <div class="timeline-desc">Security Software Support / Sayari Data Access - Expanded usage</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L523P13160022_1301_-NONE-_-NONE-/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                        <div class="timeline-item highlight">
+                            <div class="timeline-date">September 2024</div>
+                            <div class="timeline-title">Major Scale-Up: Sayari Graph</div>
+                            <div class="timeline-amount">$1,500,000</div>
+                            <div class="timeline-desc">Corporate Governance Data via Commercial Data Hub Pilot - 17x increase over previous annual spend</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L524C0008_1301_-NONE-_-NONE-/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <h4>Key Insight</h4>
+                        <p>Sayari's engagement grew from $80K pilots to $1.5M enterprise deployment, coinciding with October 2022 semiconductor export controls expansion. BIS shifted from individual analyst usage to bulk data integration for automated entity screening.</p>
+                    </div>
+                    <div class="period-bar">
+                        <div class="label">Contract Period</div>
+                        <div class="period-visual">
+                            <div class="period-fill" style="width: 100%;"></div>
+                        </div>
+                        <div class="period-dates">
+                            <span>Feb 2021</span>
+                            <span>Mar 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Palantir -->
+            <div class="vendor-card" id="palantir">
+                <div class="vendor-header">
+                    <div class="vendor-info">
+                        <h2>Palantir Technologies</h2>
+                        <div class="reseller-note">via Thundercat Technology, LLC (NASA SEWP)</div>
+                    </div>
+                    <div class="vendor-total">
+                        <div class="amount">$4,600,200</div>
+                        <div class="label">Currently Obligated</div>
+                    </div>
+                </div>
+                <div class="vendor-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">October 30, 2024</div>
+                            <div class="timeline-title">Base Award - Data Analytics PaaS</div>
+                            <div class="timeline-amount">$556,084</div>
+                            <div class="timeline-desc">BIS Palantir Data Analytics PaaS Solution - Initial deployment</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L525F0002_1301_NNG15SC92B_8000/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">December 2024</div>
+                            <div class="timeline-title">Mod P25002</div>
+                            <div class="timeline-amount">$399,286</div>
+                            <div class="timeline-desc">First funding increase - platform expansion</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">January 2025</div>
+                            <div class="timeline-title">Mod P25003</div>
+                            <div class="timeline-amount">$631,705</div>
+                            <div class="timeline-desc">Major funding - significant capability expansion</div>
+                        </div>
+                        <div class="timeline-item highlight">
+                            <div class="timeline-date">May 2025</div>
+                            <div class="timeline-title">Mod P25005</div>
+                            <div class="timeline-amount">$1,829,171</div>
+                            <div class="timeline-desc">Largest single modification - substantial platform expansion</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">December 2025 - January 2026</div>
+                            <div class="timeline-title">Mods P26008 & P26009</div>
+                            <div class="timeline-amount">$809,343</div>
+                            <div class="timeline-desc">Continued funding into FY2026</div>
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <h4>Key Insight</h4>
+                        <p>Palantir represents BIS's central data analytics platform with a $9.5M ceiling value. Per CSIS analysis, BIS operates with outdated infrastructure where databases "crash routinely." Palantir Foundry provides entity resolution, knowledge graphs, and sanctions screening automation.</p>
+                    </div>
+                    <div class="period-bar">
+                        <div class="label">Contract Period (48% utilized)</div>
+                        <div class="period-visual">
+                            <div class="period-fill" style="width: 65%;"></div>
+                        </div>
+                        <div class="period-dates">
+                            <span>Oct 2024</span>
+                            <span>Oct 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conflict Armament Research -->
+            <div class="vendor-card" id="car">
+                <div class="vendor-header">
+                    <div class="vendor-info">
+                        <h2>Conflict Armament Research</h2>
+                        <div class="reseller-note">Direct contract with BIS</div>
+                    </div>
+                    <div class="vendor-total">
+                        <div class="amount">$120,000</div>
+                        <div class="label">Total Obligated</div>
+                    </div>
+                </div>
+                <div class="vendor-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">February 2021</div>
+                            <div class="timeline-title">iTrace Portal Access</div>
+                            <div class="timeline-amount">$120,000</div>
+                            <div class="timeline-desc">Portal Web Tracking Licenses - Access to CAR's weapons tracking database documenting 130,000+ illicit weapons globally</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L521P13160028_1301_-NONE-_-NONE-/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <h4>Key Insight</h4>
+                        <p>CAR provides physical evidence intelligence - documenting weapons in conflict zones and tracing serial numbers. Their investigation found 82% of Iranian Shahed drone components came from U.S. companies, directly informing BIS export control policy on Iran.</p>
+                    </div>
+                    <div class="period-bar">
+                        <div class="label">Contract Period (Completed)</div>
+                        <div class="period-visual">
+                            <div class="period-fill" style="width: 100%; background: #9e9e9e;"></div>
+                        </div>
+                        <div class="period-dates">
+                            <span>Feb 2021</span>
+                            <span>Feb 2022</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WireScreen -->
+            <div class="vendor-card" id="wirescreen">
+                <div class="vendor-header">
+                    <div class="vendor-info">
+                        <h2>WireScreen</h2>
+                        <div class="reseller-note">via Thundercat Technology, LLC (NASA SEWP)</div>
+                    </div>
+                    <div class="vendor-total">
+                        <div class="amount">$25,000</div>
+                        <div class="label">Total Obligated</div>
+                    </div>
+                </div>
+                <div class="vendor-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date">September 2024</div>
+                            <div class="timeline-title">Platform Evaluation</div>
+                            <div class="timeline-amount">$25,000</div>
+                            <div class="timeline-desc">WireScreen Platform Access - Single-day evaluation license for China-focused corporate intelligence</div>
+                            <a href="https://www.usaspending.gov/award/CONT_AWD_1331L524F0629_1301_NNG15SD26B_8000/" target="_blank" class="timeline-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View on USASpending
+                            </a>
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <h4>Key Insight</h4>
+                        <p>WireScreen specializes in Chinese corporate data with 14M+ Chinese company profiles. Founded by Pulitzer Prize-winning journalist David Barboza (former NYT Shanghai bureau chief). Supports BIS 50% Affiliates Rule enforcement which affects 20,000+ Chinese entities.</p>
+                    </div>
+                    <div class="period-bar">
+                        <div class="label">Contract Period (Pilot)</div>
+                        <div class="period-visual">
+                            <div class="period-fill" style="width: 100%; background: #f4a261;"></div>
+                        </div>
+                        <div class="period-dates">
+                            <span>Oct 7, 2024</span>
+                            <span>Oct 7, 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contract Citation Table -->
+        <div class="comparison-section">
+            <div class="comparison-header">
+                <h3>Full Contract Citation Details</h3>
+            </div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Award ID (PIID)</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>USASpending Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="vendor-name">Sayari Analytics</td>
+                        <td>1331L521P13160034</td>
+                        <td>$80,000</td>
+                        <td>Feb 2021</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L521P13160034_1301_-NONE-_-NONE-/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Sayari Analytics</td>
+                        <td>1331L522P13160038</td>
+                        <td>$82,800</td>
+                        <td>Mar 2022</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L522P13160038_1301_-NONE-_-NONE-/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Sayari Analytics</td>
+                        <td>1331L523P13160022</td>
+                        <td>$85,000</td>
+                        <td>Mar 2023</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L523P13160022_1301_-NONE-_-NONE-/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Sayari Analytics</td>
+                        <td>1331L524C0008</td>
+                        <td>$1,500,000</td>
+                        <td>Sep 2024</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L524C0008_1301_-NONE-_-NONE-/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Palantir (via Thundercat)</td>
+                        <td>1331L525F0002</td>
+                        <td>$4,600,200</td>
+                        <td>Oct 2024</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L525F0002_1301_NNG15SC92B_8000/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">WireScreen (via Thundercat)</td>
+                        <td>1331L524F0629</td>
+                        <td>$25,000</td>
+                        <td>Sep 2024</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L524F0629_1301_NNG15SD26B_8000/" target="_blank">View Award</a></td>
+                    </tr>
+                    <tr>
+                        <td class="vendor-name">Conflict Armament Research</td>
+                        <td>1331L521P13160028</td>
+                        <td>$120,000</td>
+                        <td>Feb 2021</td>
+                        <td><a href="https://www.usaspending.gov/award/CONT_AWD_1331L521P13160028_1301_-NONE-_-NONE-/" target="_blank">View Award</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        <p>Data source: <a href="https://www.usaspending.gov" target="_blank">USAspending.gov</a> |
+        Analysis based on Bureau of Industry and Security contracts</p>
+        <p style="margin-top: 8px; font-size: 0.8rem;">Last updated: February 2026</p>
+    </footer>
+
+    <script>
+        // Vendor Total Chart
+        const vendorCtx = document.getElementById('vendorTotalChart').getContext('2d');
+        new Chart(vendorCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Palantir', 'Sayari', 'CAR', 'WireScreen'],
+                datasets: [{
+                    data: [4600200, 1747800, 120000, 25000],
+                    backgroundColor: ['#0d3b66', '#1e5f8a', '#3a7ca5', '#5da9c5'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => '$' + ctx.raw.toLocaleString()
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: value => {
+                                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+                                return '$' + value;
+                            }
+                        },
+                        grid: { color: '#f0f0f0' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Timeline Chart
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: ['FY21', 'FY22', 'FY23', 'FY24', 'FY25', 'FY26'],
+                datasets: [
+                    {
+                        label: 'Sayari',
+                        data: [80000, 82800, 85000, 1500000, 0, 0],
+                        borderColor: '#0d3b66',
+                        backgroundColor: 'rgba(13, 59, 102, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Palantir',
+                        data: [0, 0, 0, 556084, 3774366, 269780],
+                        borderColor: '#f4a261',
+                        backgroundColor: 'rgba(244, 162, 97, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'CAR',
+                        data: [120000, 0, 0, 0, 0, 0],
+                        borderColor: '#2a9d8f',
+                        backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'WireScreen',
+                        data: [0, 0, 0, 25000, 0, 0],
+                        borderColor: '#e76f51',
+                        backgroundColor: 'rgba(231, 111, 81, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString()
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: value => {
+                                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+                                return '$' + value;
+                            }
+                        },
+                        grid: { color: '#f0f0f0' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
